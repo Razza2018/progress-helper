@@ -3,7 +3,7 @@ var _current = 0;
 
 function printProgress() {
   var columns = process.stdout.columns;
-  var message = ' ' + _current + ' / ' + _total;
+  var message = ' ' + _current + ' / ' + _total + ' ';
   columns = columns - message.length;
   var multiplyer = _total / columns;
   var current = _current / multiplyer;
