@@ -1,43 +1,84 @@
-var _total = 0;
-var _current = 0;
+let _total = 0;
+let _current = 0;
+let isShowing = false;
+let _clearTwoLines = false;
+
+/* Overriding console.log */
+const _oldConsoleLog = console.log;
+const _newConsoleLog = (...rest) => {
+	if (isShowing) clearProgress();
+	_internalConsoleLog(...rest);
+	if (isShowing) printProgress();
+};
+const _internalConsoleLog = (...rest) => {
+	process.stdout.write = _oldStdOutWrite;
+	_oldConsoleLog(...rest);
+	process.stdout.write = _newStdOutWrite;
+};
+
+/* Overriding process.stdout.write */
+const _oldStdOutWrite = process.stdout.write.bind(process.stdout);
+const _newStdOutWrite = (rest) => {
+	// _internalConsoleLog('rest:', JSON.stringify(rest));
+	if (isShowing) clearProgress();
+	_oldStdOutWrite(rest);
+
+	if (rest.slice(-1) !== '\n') {
+		_clearTwoLines = true;
+		_oldStdOutWrite('\n');
+	}
+
+	if (isShowing) printProgress();
+};
+
+console.log = _newConsoleLog;
+process.stdout.write = _newStdOutWrite
 
 function printProgress() {
-  var columns = process.stdout.columns;
-  var message = ' ' + _current + ' / ' + _total + ' ';
+  let columns = process.stdout.columns;
+  let message = ' ' + _current + ' / ' + _total + ' ';
   columns = columns - message.length;
-  var multiplyer = _total / columns;
-  var current = _current / multiplyer;
+  let multiplyer = _total / columns;
+  let current = _current / multiplyer;
 
-  process.stdout.write('\r');
+  _oldStdOutWrite('\r');
 
   for (let i = 0; i < columns; i++) {
     if (i < current) {
-      process.stdout.write('█')
+      _oldStdOutWrite('█')
     } else {
-      process.stdout.write('░')
+      _oldStdOutWrite('░')
     }
   }
 
-  process.stdout.write(message);
+  _oldStdOutWrite(message);
 
   if (_current === _total) {
-    process.stdout.write('\n');
+		isShowing = false;
+    _oldStdOutWrite('\n');
   }
 }
 
 function clearProgress() {
-  var columns = process.stdout.columns;
+	_oldStdOutWrite('\r');
 
-  process.stdout.write('\r');
+	if (_clearTwoLines) {
+		_oldStdOutWrite('\x1B[1A');
+		_clearTwoLines = false;
+	}
 
-  for (let i = 0; i < columns; i++) {
-    process.stdout.write(' ');
-  }
-
-  process.stdout.write('\r');
+	_oldStdOutWrite('\x1B[0J');
 }
 
-module.exports.setTotal = (total) => _total = total;
-module.exports.setCurrent = (current) => _current = current + 1;
-module.exports.printProgress = () => printProgress();
-module.exports.clearProgress = () => clearProgress();
+function setTotal(total) {
+	_total = total;
+	isShowing = true;
+}
+
+function setCurrent(current) {
+	_current = current + 1;
+	printProgress();
+}
+
+module.exports.setTotal = setTotal;
+module.exports.setCurrent = setCurrent;
