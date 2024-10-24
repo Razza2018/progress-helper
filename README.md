@@ -1,8 +1,10 @@
 # Progress Helper
 
-A progress bar for node.js
+A progress bar for node.js scripts.
 
-This allows you to add a progress bar to your long jobs to visually see where your scripts are currently up to.
+Requiring progress-helper.js in your node.js scripts will allow you to add a progress bar to your long jobs to visually see where your scripts are currently up to.
+
+You set how many items you are going to loop through and then set the index number on each loop.
 
 ![Example of progress helper when running](./example/example-running.png "Example of progress helper when running")
 
